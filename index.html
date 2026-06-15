@@ -64,35 +64,37 @@
                     <form id="login-form">
                         <div id="login-message" class="alert alert-danger d-none" role="alert"></div>
                         <div class="mb-3">
-                            <label for="email" class="form-label">Correo electrónico</label>
+                            <label for="login-username" class="form-label">Usuario</label>
                             <input
-                                type="email"
+                                type="text"
                                 class="form-control"
-                                id="email"
-                                placeholder="Ingresa tu correo"
+                                id="login-username"
+                                placeholder="Ingresa tu usuario"
                                 required
                             />
                         </div>
                         <div class="mb-3">
-                            <label for="password" class="form-label">Contraseña</label>
+                            <label for="login-password" class="form-label">Contraseña</label>
                             <input
                                 type="password"
                                 class="form-control"
-                                id="password"
+                                id="login-password"
                                 placeholder="Ingresa tu contraseña"
                                 required
                             />
                         </div>
                         <button type="submit" class="btn btn-primary w-100">Ingresar</button>
                     </form>
-
-                    <section class="card wallet-card mt-4" aria-labelledby="clientes-demo">
-                        <div class="card-body">
-                            <h2 class="h5 card-title" id="clientes-demo">Clientes de prueba</h2>
-                            <p class="card-text mb-2">Cliente 1: ana@wallet.cl / Ana123</p>
-                            <p class="card-text mb-0">Cliente 2: pedro@wallet.cl / Pedro123</p>
-                        </div>
-                    </section>
+                    <div class="login-actions mt-4">
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary w-100"
+                            data-bs-toggle="modal"
+                            data-bs-target="#registerModal"
+                        >
+                            Crear cuenta
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -235,6 +237,59 @@
                 </section>
             </section>
         </main>
+
+        <section
+            class="modal fade"
+            id="registerModal"
+            tabindex="-1"
+            aria-labelledby="registerModalLabel"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="h5 modal-title" id="registerModalLabel">Registro simple</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="register-form">
+                            <div id="register-message" class="alert d-none" role="alert"></div>
+                            <div class="mb-3">
+                                <label for="register-name" class="form-label">Nombre</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="register-name"
+                                    placeholder="Ingresa tu nombre"
+                                    required
+                                />
+                            </div>
+                            <div class="mb-3">
+                                <label for="register-username" class="form-label">Usuario</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="register-username"
+                                    placeholder="Crea un nombre de usuario"
+                                    required
+                                />
+                            </div>
+                            <div class="mb-0">
+                                <label for="register-password" class="form-label">Contraseña</label>
+                                <input
+                                    type="password"
+                                    class="form-control"
+                                    id="register-password"
+                                    placeholder="Crea una contraseña"
+                                    required
+                                />
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mt-3">Registrarse</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <section
             class="modal fade"
