@@ -1,0 +1,371 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Alke Wallet</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+            crossorigin="anonymous"
+        />
+        <link rel="stylesheet" href="css/styles.css" />
+    </head>
+    <body>
+        <main class="container" id="app-shell">
+            <nav class="navbar navbar-expand-lg wallet-navbar mb-4 d-none" id="app-navbar" aria-label="Menú principal">
+                <div class="container-fluid px-3">
+                    <a href="#" class="navbar-brand mb-0 text-decoration-none" data-view="menu">Alke Wallet</a>
+                    <button
+                        class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#wallet-navbar-content"
+                        aria-controls="wallet-navbar-content"
+                        aria-expanded="false"
+                        aria-label="Mostrar navegación"
+                    >
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="wallet-navbar-content">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-lg-2">
+                            <li class="nav-item">
+                                <a href="#" class="nav-link" data-view="menu">Inicio</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link" data-view="deposit">Depositar</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link" data-view="sendmoney">Enviar dinero</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link" data-view="transactions">Movimientos</a>
+                            </li>
+                        </ul>
+                        <div class="wallet-actions">
+                            <button
+                                type="button"
+                                class="btn btn-outline-danger btn-sm wallet-logout"
+                                id="logout-button"
+                            >
+                                Cerrar sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <section class="app-view" id="view-login" aria-labelledby="login-title">
+                <div class="container-login mx-auto">
+                    <header>
+                        <h1 class="h2 mb-4" id="login-title">Alke Wallet</h1>
+                    </header>
+                    <form id="login-form">
+                        <div id="login-message" class="alert alert-danger d-none" role="alert"></div>
+                        <div class="mb-3">
+                            <label for="login-username" class="form-label">Usuario</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="login-username"
+                                placeholder="Ingresa tu usuario"
+                                required
+                            />
+                        </div>
+                        <div class="mb-3">
+                            <label for="login-password" class="form-label">Contraseña</label>
+                            <input
+                                type="password"
+                                class="form-control"
+                                id="login-password"
+                                placeholder="Ingresa tu contraseña"
+                                required
+                            />
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+                    </form>
+                    <div class="login-actions mt-4">
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary w-100"
+                            data-bs-toggle="modal"
+                            data-bs-target="#registerModal"
+                        >
+                            Crear cuenta
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="app-view d-none" id="view-menu" aria-labelledby="menu-title">
+                <header>
+                    <h1 class="h2 mb-4" id="menu-title">Menú Principal</h1>
+                </header>
+
+                <section class="card wallet-card mb-4" aria-labelledby="saldo-actual">
+                    <div class="card-body">
+                        <h2 class="h5 card-title" id="saldo-actual">Saldo actual</h2>
+                        <p class="card-text fs-4 fw-bold text-success" id="menu-balance">$ 350.000 CLP</p>
+                    </div>
+                </section>
+            </section>
+
+            <section class="app-view d-none" id="view-deposit" aria-labelledby="deposit-title">
+                <header>
+                    <h1 class="h2 mb-4" id="deposit-title">Depositar</h1>
+                </header>
+
+                <section class="card wallet-card mb-4" aria-labelledby="saldo-disponible">
+                    <div class="card-body">
+                        <h2 class="h5 card-title" id="saldo-disponible">Saldo disponible</h2>
+                        <p class="card-text fs-4 fw-bold text-success mb-0" id="balance-amount">$ 350.000 CLP</p>
+                    </div>
+                </section>
+
+                <section aria-labelledby="formulario-deposito">
+                    <h2 class="visually-hidden" id="formulario-deposito">Formulario de depósito</h2>
+                    <form id="deposit-form">
+                        <div id="deposit-message" class="alert d-none" role="alert"></div>
+                        <div class="mb-3">
+                            <label for="monto" class="form-label">Monto a depositar</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="monto"
+                                placeholder="Ingresa el monto"
+                                inputmode="numeric"
+                                autocomplete="off"
+                                required
+                            />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Realizar depósito</button>
+                    </form>
+                </section>
+            </section>
+
+            <section class="app-view d-none" id="view-sendmoney" aria-labelledby="sendmoney-title">
+                <header>
+                    <h1 class="h2 mb-4" id="sendmoney-title">Enviar Dinero</h1>
+                </header>
+
+                <section class="card wallet-card mb-4" aria-labelledby="saldo-envio">
+                    <div class="card-body">
+                        <h2 class="h5 card-title" id="saldo-envio">Saldo disponible</h2>
+                        <p class="card-text fs-4 fw-bold text-success mb-0" id="send-balance">$ 350.000 CLP</p>
+                    </div>
+                </section>
+
+                <section aria-labelledby="formulario-envio">
+                    <h2 class="visually-hidden" id="formulario-envio">Formulario de búsqueda de contactos</h2>
+                    <form class="mb-3" id="contact-search-form">
+                        <div id="send-message" class="alert d-none" role="alert"></div>
+                        <div class="mb-3">
+                            <label for="buscar-contacto" class="form-label">Buscar en agenda de transferencias</label>
+                            <select class="form-select" id="buscar-contacto">
+                                <option value="">Selecciona un contacto</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">Seleccionar</button>
+                    </form>
+                </section>
+
+                <section
+                    class="card wallet-card mb-4 d-none"
+                    id="selected-contact-card"
+                    aria-labelledby="contacto-seleccionado"
+                >
+                    <div class="card-body">
+                        <h2 class="h5 card-title" id="contacto-seleccionado">Contacto seleccionado</h2>
+                        <p class="mb-1 fw-semibold" id="selected-contact-name"></p>
+                        <p class="mb-1 text-muted" id="selected-contact-bank"></p>
+                        <p class="mb-0 text-muted" id="selected-contact-alias"></p>
+                    </div>
+                </section>
+
+                <section class="d-none" id="transfer-section" aria-labelledby="formulario-transferencia">
+                    <h2 class="h5 mb-3" id="formulario-transferencia">Realizar transferencia</h2>
+                    <form id="send-money-form">
+                        <div class="mb-3">
+                            <label for="transfer-amount" class="form-label">Monto a transferir</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="transfer-amount"
+                                placeholder="Ingresa el monto"
+                                inputmode="numeric"
+                                autocomplete="off"
+                                required
+                            />
+                        </div>
+                        <div class="mb-3">
+                            <label for="transfer-note" class="form-label">Motivo</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="transfer-note"
+                                placeholder="Ejemplo: arriendo, regalo, almuerzo"
+                            />
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Enviar dinero</button>
+                    </form>
+                </section>
+
+                <section aria-labelledby="acciones-contactos">
+                    <h2 class="visually-hidden" id="acciones-contactos">Acciones de contactos</h2>
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary w-100 mb-4"
+                        data-bs-toggle="modal"
+                        data-bs-target="#nuevoContactoModal"
+                    >
+                        Agregar nuevo contacto
+                    </button>
+                </section>
+            </section>
+
+            <section class="app-view d-none" id="view-transactions" aria-labelledby="transactions-title">
+                <header>
+                    <h1 class="h2 mb-4" id="transactions-title">Últimos Movimientos</h1>
+                </header>
+
+                <section aria-labelledby="lista-movimientos">
+                    <h2 class="visually-hidden" id="lista-movimientos">Lista de movimientos</h2>
+                    <ul class="list-group mb-4 list-unstyled wallet-list" id="transactions-list"></ul>
+                </section>
+            </section>
+        </main>
+
+        <section
+            class="modal fade"
+            id="registerModal"
+            tabindex="-1"
+            aria-labelledby="registerModalLabel"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="h5 modal-title" id="registerModalLabel">Registro simple</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="register-form">
+                            <div id="register-message" class="alert d-none" role="alert"></div>
+                            <div class="mb-3">
+                                <label for="register-name" class="form-label">Nombre</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="register-name"
+                                    placeholder="Ingresa tu nombre"
+                                    required
+                                />
+                            </div>
+                            <div class="mb-3">
+                                <label for="register-username" class="form-label">Usuario</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="register-username"
+                                    placeholder="Crea un nombre de usuario"
+                                    required
+                                />
+                            </div>
+                            <div class="mb-0">
+                                <label for="register-password" class="form-label">Contraseña</label>
+                                <input
+                                    type="password"
+                                    class="form-control"
+                                    id="register-password"
+                                    placeholder="Crea una contraseña"
+                                    required
+                                />
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mt-3">Registrarse</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section
+            class="modal fade"
+            id="nuevoContactoModal"
+            tabindex="-1"
+            aria-labelledby="nuevoContactoModalLabel"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="h5 modal-title" id="nuevoContactoModalLabel">Agregar nuevo contacto</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="new-contact-form">
+                            <div class="mb-3">
+                                <label for="nombre-contacto" class="form-label">Nombre y apellido</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="nombre-contacto"
+                                    placeholder="Ingresa el nombre y apellido"
+                                    required
+                                />
+                            </div>
+                            <div class="mb-3">
+                                <label for="numero-cuenta-contacto" class="form-label">Número de cuenta</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="numero-cuenta-contacto"
+                                    placeholder="Ingresa el número de cuenta"
+                                    inputmode="numeric"
+                                    autocomplete="off"
+                                    required
+                                />
+                            </div>
+                            <div class="mb-3">
+                                <label for="alias-contacto" class="form-label">Alias</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="alias-contacto"
+                                    placeholder="Ingresa el alias"
+                                    required
+                                />
+                            </div>
+                            <div class="mb-3">
+                                <label for="banco-contacto" class="form-label">Nombre del Banco</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="banco-contacto"
+                                    placeholder="Ingresa el nombre del banco"
+                                    required
+                                />
+                            </div>
+                            <div id="contact-message" class="alert d-none" role="alert"></div>
+                            <button type="submit" class="btn btn-primary w-100">Guardar contacto</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <script
+            src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"
+        ></script>
+        <script src="js/wallet.js"></script>
+        <script src="js/login.js"></script>
+        <script src="js/menu.js"></script>
+        <script src="js/deposit.js"></script>
+        <script src="js/sendmoney.js"></script>
+        <script src="js/transactions.js"></script>
+    </body>
+</html>
