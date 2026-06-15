@@ -1,17 +1,15 @@
-const walletHelpers = window.walletApp;
-
 $(function () {
+    const walletHelpers = window.walletApp;
     const $depositForm = $("#deposit-form");
     const $amountInput = $("#monto");
     const $depositMessage = $("#deposit-message");
     const $balanceAmount = $("#balance-amount");
 
-    const showMessage = (text, type) => {
-        $depositMessage.text(text).attr("class", `alert alert-${type}`);
-    };
+    const showMessage = (text, type) => walletHelpers.setAlert($depositMessage, text, type);
+    const hideMessage = () => walletHelpers.setAlert($depositMessage);
 
     const updateBalanceView = () => {
-        $balanceAmount.text(`$ ${walletHelpers.formatCurrency(walletHelpers.getBalance())} CLP`);
+        $balanceAmount.text(walletHelpers.formatBalance(walletHelpers.getBalance()));
     };
 
     updateBalanceView();
@@ -35,24 +33,26 @@ $(function () {
         }
 
         const newBalance = walletHelpers.getBalance() + amount;
-        const now = new Date();
-        const formattedHour = now.toLocaleTimeString("es-CL", {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-
-        sessionStorage.setItem("walletBalance", String(newBalance));
+        walletHelpers.setBalance(newBalance);
         walletHelpers.addTransaction({
             title: "Depósito realizado",
             amount,
             type: "deposit",
-            date: `Hoy - ${formattedHour} hrs`,
+            date: walletHelpers.getCurrentTimeLabel(),
         });
         updateBalanceView();
-        showMessage(
-            `Depósito realizado con éxito. Se abonaron $ ${walletHelpers.formatCurrency(amount)} CLP.`,
-            "success",
-        );
+        showMessage(`Depósito realizado con éxito. Se abonaron ${walletHelpers.formatBalance(amount)}.`, "success");
         this.reset();
+    });
+
+    walletHelpers.onView("deposit", function () {
+        updateBalanceView();
+        hideMessage();
+    });
+
+    walletHelpers.onEvent("wallet:logout", function () {
+        $depositForm.trigger("reset");
+        hideMessage();
+        updateBalanceView();
     });
 });

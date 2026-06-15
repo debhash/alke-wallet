@@ -66,10 +66,122 @@ const formatCurrency = (amount) => {
     return new Intl.NumberFormat("es-CL").format(amount);
 };
 
-const getBalance = () => {
-    const storedBalance = Number(sessionStorage.getItem("walletBalance"));
+const formatBalance = (amount) => {
+    return `$ ${formatCurrency(amount)} CLP`;
+};
 
-    if (Number.isNaN(storedBalance) || storedBalance <= 0) {
+const getCurrentTimeLabel = () => {
+    const now = new Date();
+
+    return `Hoy - ${now.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })} hrs`;
+};
+
+const setAlert = ($element, text, type) => {
+    if (!text) {
+        $element.text("").attr("class", "alert d-none");
+        return;
+    }
+
+    $element.text(text).attr("class", `alert alert-${type}`);
+};
+
+const protectedViews = new Set(["menu", "deposit", "sendmoney", "transactions"]);
+
+const getUser = () => {
+    const storedUser = sessionStorage.getItem("walletUser");
+
+    if (!storedUser) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(storedUser);
+    } catch {
+        sessionStorage.removeItem("walletUser");
+        return null;
+    }
+};
+
+const setUser = (user) => {
+    sessionStorage.setItem("walletUser", JSON.stringify(user));
+};
+
+const emit = (eventName, payload) => {
+    $(document).trigger(eventName, payload === undefined ? [] : [payload]);
+};
+
+const onEvent = (eventName, handler) => {
+    $(document).on(eventName, handler);
+};
+
+const onView = (viewName, handler) => {
+    onEvent("wallet:viewchange", function (_event, currentView) {
+        if (currentView === viewName) {
+            handler(currentView);
+        }
+    });
+};
+
+const triggerDataChange = () => {
+    emit("wallet:datachange");
+};
+
+const updateNavState = (viewName) => {
+    $(".wallet-navbar .nav-link").each(function () {
+        const $link = $(this);
+        const isActive = $link.data("view") === viewName;
+
+        $link.toggleClass("active", isActive);
+
+        if (isActive) {
+            $link.attr("aria-current", "page");
+            return;
+        }
+
+        $link.removeAttr("aria-current");
+    });
+};
+
+const showView = (viewName) => {
+    const nextView = protectedViews.has(viewName) && !getUser() ? "login" : viewName;
+
+    $(".app-view").addClass("d-none");
+    $(`#view-${nextView}`).removeClass("d-none");
+    $("#app-navbar").toggleClass("d-none", nextView === "login");
+    $("#wallet-navbar-content").removeClass("show");
+    updateNavState(nextView);
+    emit("wallet:viewchange", nextView);
+
+    return nextView;
+};
+
+const loginUser = (user) => {
+    setUser(user);
+    showView("menu");
+};
+
+const logoutUser = () => {
+    sessionStorage.clear();
+    emit("wallet:logout");
+    showView("login");
+};
+
+const setBalance = (balance) => {
+    sessionStorage.setItem("walletBalance", String(balance));
+    triggerDataChange();
+};
+
+const getBalance = () => {
+    const storedBalanceValue = sessionStorage.getItem("walletBalance");
+
+    if (storedBalanceValue === null) {
+        sessionStorage.setItem("walletBalance", String(initialBalance));
+        return initialBalance;
+    }
+
+    const storedBalance = Number(storedBalanceValue);
+
+    if (!Number.isFinite(storedBalance) || storedBalance < 0) {
         sessionStorage.setItem("walletBalance", String(initialBalance));
         return initialBalance;
     }
@@ -107,6 +219,7 @@ const addTransaction = (transaction) => {
     const transactions = getTransactions();
     transactions.unshift(transaction);
     saveTransactions(transactions);
+    triggerDataChange();
 };
 
 const getContacts = () => {
@@ -148,11 +261,22 @@ const addContact = (contact) => {
     const contacts = getContacts();
     contacts.push(contact);
     saveContacts(contacts);
+    triggerDataChange();
 };
 
 window.walletApp = {
     formatCurrency,
+    formatBalance,
+    getCurrentTimeLabel,
+    setAlert,
+    getUser,
+    showView,
+    loginUser,
+    logoutUser,
+    onEvent,
+    onView,
     getBalance,
+    setBalance,
     getTransactions,
     addTransaction,
     getContacts,
@@ -160,24 +284,23 @@ window.walletApp = {
 };
 
 $(function () {
-    const currentPage = window.location.pathname.split("/").pop() || "menu.html";
+    $("[data-view]").on("click", function (event) {
+        event.preventDefault();
 
-    $(".wallet-navbar .nav-link").each(function () {
-        const $link = $(this);
-        const isActive = $link.attr("href") === currentPage;
+        const targetView = $(this).data("view");
 
-        $link.toggleClass("active", isActive);
-
-        if (isActive) {
-            $link.attr("aria-current", "page");
-            return;
+        if (typeof targetView === "string" && targetView) {
+            showView(targetView);
         }
+    });
 
-        $link.removeAttr("aria-current");
+    $(".navbar-toggler").on("click", function () {
+        $("#wallet-navbar-content").toggleClass("show");
     });
 
     $("#logout-button").on("click", function () {
-        sessionStorage.clear();
-        window.location.href = "login.html";
+        logoutUser();
     });
+
+    showView(getUser() ? "menu" : "login");
 });

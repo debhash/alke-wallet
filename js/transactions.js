@@ -1,8 +1,8 @@
 $(function () {
+    const { formatCurrency, getTransactions, onEvent, onView } = window.walletApp;
     const $transactionsList = $("#transactions-list");
 
-    if ($transactionsList.length) {
-        const { formatCurrency, getTransactions } = window.walletApp;
+    const renderTransactions = () => {
         const transactions = getTransactions();
 
         $transactionsList.html(
@@ -23,5 +23,9 @@ $(function () {
                 })
                 .join(""),
         );
-    }
+    };
+
+    renderTransactions();
+    onEvent("wallet:datachange", renderTransactions);
+    onView("transactions", renderTransactions);
 });

@@ -47,6 +47,10 @@ main,
     z-index: 1;
 }
 
+body.wallet-modal-open {
+    overflow: hidden;
+}
+
 .container {
     max-width: 860px;
     margin: 0 auto;
@@ -362,6 +366,11 @@ li {
 
 .modal-header {
     border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.modal.show {
+    display: block;
+    background-color: rgba(7, 17, 31, 0.68);
 }
 
 .btn-close {

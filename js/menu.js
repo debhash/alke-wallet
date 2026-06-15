@@ -1,8 +1,12 @@
 $(function () {
+    const { formatBalance, getBalance, onEvent, onView } = window.walletApp;
     const $menuBalance = $("#menu-balance");
 
-    if ($menuBalance.length) {
-        const { formatCurrency, getBalance } = window.walletApp;
-        $menuBalance.text(`$ ${formatCurrency(getBalance())} CLP`);
-    }
+    const renderBalance = () => {
+        $menuBalance.text(formatBalance(getBalance()));
+    };
+
+    renderBalance();
+    onEvent("wallet:datachange", renderBalance);
+    onView("menu", renderBalance);
 });

@@ -1,18 +1,7 @@
 let selectedContact = null;
 
-const walletHelpers = window.walletApp;
-
-const getCurrentTimeLabel = () => {
-    const now = new Date();
-    const formattedHour = now.toLocaleTimeString("es-CL", {
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-
-    return `Hoy - ${formattedHour} hrs`;
-};
-
 $(function () {
+    const walletHelpers = window.walletApp;
     const $searchForm = $("#contact-search-form");
     const $contactSelect = $("#buscar-contacto");
     const $sendMessage = $("#send-message");
@@ -31,19 +20,15 @@ $(function () {
     const $aliasInput = $("#alias-contacto");
     const $bankInput = $("#banco-contacto");
     const $contactMessage = $("#contact-message");
-    const contactModalElement = document.getElementById("nuevoContactoModal");
-    const contactModal = bootstrap.Modal.getOrCreateInstance(contactModalElement);
+    const $contactModal = $("#nuevoContactoModal");
+    const $openContactModalButton = $("[data-bs-target='#nuevoContactoModal']");
+    const $closeContactModalButton = $contactModal.find("[data-bs-dismiss='modal']");
 
-    const showAlert = ($element, text, type) => {
-        $element.text(text).attr("class", `alert alert-${type}`);
-    };
-
-    const hideAlert = ($element) => {
-        $element.text("").attr("class", "alert d-none");
-    };
+    const showAlert = ($element, text, type) => walletHelpers.setAlert($element, text, type);
+    const hideAlert = ($element) => walletHelpers.setAlert($element);
 
     const updateBalance = () => {
-        $sendBalance.text(`$ ${walletHelpers.formatCurrency(walletHelpers.getBalance())} CLP`);
+        $sendBalance.text(walletHelpers.formatBalance(walletHelpers.getBalance()));
     };
 
     const renderContacts = () => {
@@ -63,6 +48,27 @@ $(function () {
         $selectedContactAlias.text(`Alias: ${contact.alias}`);
         $selectedContactCard.removeClass("d-none");
         $transferSection.removeClass("d-none");
+    };
+
+    const resetTransferState = () => {
+        selectedContact = null;
+        $searchForm.trigger("reset");
+        $sendMoneyForm.trigger("reset");
+        $selectedContactCard.addClass("d-none");
+        $transferSection.addClass("d-none");
+        hideAlert($sendMessage);
+    };
+
+    const closeContactModal = () => {
+        $contactModal.removeClass("show d-block").attr("aria-hidden", "true");
+        $("body").removeClass("wallet-modal-open");
+        $newContactForm.trigger("reset");
+        hideAlert($contactMessage);
+    };
+
+    const openContactModal = () => {
+        $contactModal.addClass("show d-block").attr("aria-hidden", "false");
+        $("body").addClass("wallet-modal-open");
     };
 
     updateBalance();
@@ -128,16 +134,16 @@ $(function () {
             ? `Transferencia a ${selectedContact.name} - ${note}`
             : `Transferencia a ${selectedContact.name}`;
 
-        sessionStorage.setItem("walletBalance", String(newBalance));
+        walletHelpers.setBalance(newBalance);
         walletHelpers.addTransaction({
             title: transferTitle,
             amount,
             type: "send",
-            date: getCurrentTimeLabel(),
+            date: walletHelpers.getCurrentTimeLabel(),
         });
 
         updateBalance();
-        showAlert($sendMessage, `Transferencia exitosa por $ ${walletHelpers.formatCurrency(amount)} CLP.`, "success");
+        showAlert($sendMessage, `Transferencia exitosa por ${walletHelpers.formatBalance(amount)}.`, "success");
         this.reset();
     });
 
@@ -173,11 +179,35 @@ $(function () {
         renderSelectedContact(newContact);
         showAlert($sendMessage, `Contacto ${name} agregado a la agenda.`, "success");
         this.reset();
-        contactModal.hide();
+        closeContactModal();
     });
 
-    $(contactModalElement).on("hidden.bs.modal", function () {
-        $newContactForm.trigger("reset");
-        hideAlert($contactMessage);
+    $openContactModalButton.on("click", function () {
+        openContactModal();
+    });
+
+    $closeContactModalButton.on("click", function () {
+        closeContactModal();
+    });
+
+    $contactModal.on("click", function (event) {
+        if (event.target === this) {
+            closeContactModal();
+        }
+    });
+
+    walletHelpers.onEvent("wallet:datachange", function () {
+        updateBalance();
+        renderContacts();
+    });
+
+    walletHelpers.onView("sendmoney", function () {
+        updateBalance();
+        renderContacts();
+    });
+
+    walletHelpers.onEvent("wallet:logout", function () {
+        resetTransferState();
+        closeContactModal();
     });
 });
