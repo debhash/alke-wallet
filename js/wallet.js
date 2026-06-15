@@ -62,6 +62,15 @@ const defaultTransactions = [
     },
 ];
 
+const defaultAuthUsers = [
+    {
+        // Keep this demo account available so the app can be tested without registration.
+        name: "Demo User",
+        username: "demo",
+        password: "Demo123",
+    },
+];
+
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat("es-CL").format(amount);
 };
@@ -86,6 +95,78 @@ const setAlert = ($element, text, type) => {
 };
 
 const protectedViews = new Set(["menu", "deposit", "sendmoney", "transactions"]);
+
+const normalizeUsername = (username) => {
+    return username.trim().toLowerCase();
+};
+
+const getAuthUsers = () => {
+    const storedUsers = localStorage.getItem("walletUsers");
+
+    if (!storedUsers) {
+        localStorage.setItem("walletUsers", JSON.stringify(defaultAuthUsers));
+        return [...defaultAuthUsers];
+    }
+
+    try {
+        const parsedUsers = JSON.parse(storedUsers);
+
+        if (!Array.isArray(parsedUsers)) {
+            throw new Error("Invalid users");
+        }
+
+        return parsedUsers.filter(
+            (user) =>
+                user &&
+                typeof user.name === "string" &&
+                typeof user.username === "string" &&
+                typeof user.password === "string",
+        );
+    } catch {
+        localStorage.setItem("walletUsers", JSON.stringify(defaultAuthUsers));
+        return [...defaultAuthUsers];
+    }
+};
+
+const saveAuthUsers = (users) => {
+    localStorage.setItem("walletUsers", JSON.stringify(users));
+};
+
+const authenticateUser = (username, password) => {
+    const normalizedUsername = normalizeUsername(username);
+
+    return getAuthUsers().find(
+        (user) => normalizeUsername(user.username) === normalizedUsername && user.password === password,
+    );
+};
+
+const registerUser = ({ name, username, password }) => {
+    const trimmedName = name.trim();
+    const trimmedPassword = password.trim();
+    const normalizedUsername = normalizeUsername(username);
+
+    if (!trimmedName || !normalizedUsername || !trimmedPassword) {
+        return { ok: false, message: "Completa nombre, usuario y contraseña." };
+    }
+
+    const users = getAuthUsers();
+    const usernameExists = users.some((user) => normalizeUsername(user.username) === normalizedUsername);
+
+    if (usernameExists) {
+        return { ok: false, message: "Ese nombre de usuario ya está registrado." };
+    }
+
+    const newUser = {
+        name: trimmedName,
+        username: normalizedUsername,
+        password: trimmedPassword,
+    };
+
+    users.push(newUser);
+    saveAuthUsers(users);
+
+    return { ok: true, user: newUser };
+};
 
 const getUser = () => {
     const storedUser = sessionStorage.getItem("walletUser");
@@ -269,6 +350,8 @@ window.walletApp = {
     formatBalance,
     getCurrentTimeLabel,
     setAlert,
+    authenticateUser,
+    registerUser,
     getUser,
     showView,
     loginUser,
