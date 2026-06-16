@@ -1,3 +1,4 @@
+// Initial data
 const initialBalance = 350000;
 const defaultContacts = [
     {
@@ -64,13 +65,14 @@ const defaultTransactions = [
 
 const defaultAuthUsers = [
     {
-        // Keep this demo account available so the app can be tested without registration.
+        // demo account for testing
         name: "Demo User",
         username: "demo",
         password: "Demo123",
     },
 ];
 
+// Display helpers
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat("es-CL").format(amount);
 };
@@ -94,42 +96,81 @@ const setAlert = ($element, text, type) => {
     $element.text(text).attr("class", `alert alert-${type}`);
 };
 
-const protectedViews = new Set(["menu", "deposit", "sendmoney", "transactions"]);
-
+// Shared storage helpers
 const normalizeUsername = (username) => {
     return username.trim().toLowerCase();
 };
 
-const getAuthUsers = () => {
-    const storedUsers = localStorage.getItem("walletUsers");
+const cloneList = (items) => {
+    return items.map((item) => ({ ...item }));
+};
 
-    if (!storedUsers) {
-        localStorage.setItem("walletUsers", JSON.stringify(defaultAuthUsers));
-        return [...defaultAuthUsers];
+const writeStoredJson = (storage, key, value) => {
+    storage.setItem(key, JSON.stringify(value));
+};
+
+const readStoredObject = (storage, key) => {
+    const storedValue = storage.getItem(key);
+
+    if (!storedValue) {
+        return null;
     }
 
     try {
-        const parsedUsers = JSON.parse(storedUsers);
-
-        if (!Array.isArray(parsedUsers)) {
-            throw new Error("Invalid users");
-        }
-
-        return parsedUsers.filter(
-            (user) =>
-                user &&
-                typeof user.name === "string" &&
-                typeof user.username === "string" &&
-                typeof user.password === "string",
-        );
+        return JSON.parse(storedValue);
     } catch {
-        localStorage.setItem("walletUsers", JSON.stringify(defaultAuthUsers));
-        return [...defaultAuthUsers];
+        storage.removeItem(key);
+        return null;
     }
 };
 
+const readStoredList = (storage, key, fallback, options = {}) => {
+    const { isValidItem = () => true, normalizeItems = (items) => items } = options;
+    const fallbackItems = normalizeItems(cloneList(fallback));
+    const storedValue = storage.getItem(key);
+
+    if (!storedValue) {
+        writeStoredJson(storage, key, fallbackItems);
+        return fallbackItems;
+    }
+
+    try {
+        const parsedValue = JSON.parse(storedValue);
+
+        if (!Array.isArray(parsedValue)) {
+            throw new Error("Invalid list");
+        }
+
+        const nextItems = normalizeItems(parsedValue.filter(isValidItem));
+        writeStoredJson(storage, key, nextItems);
+        return nextItems;
+    } catch {
+        writeStoredJson(storage, key, fallbackItems);
+        return fallbackItems;
+    }
+};
+
+const saveStoredList = (storage, key, items) => {
+    writeStoredJson(storage, key, items);
+};
+
+const saveStoredValue = (storage, key, value) => {
+    storage.setItem(key, String(value));
+};
+
+// Authentication helpers
+const getAuthUsers = () => {
+    return readStoredList(localStorage, "walletUsers", defaultAuthUsers, {
+        isValidItem: (user) =>
+            user &&
+            typeof user.name === "string" &&
+            typeof user.username === "string" &&
+            typeof user.password === "string",
+    });
+};
+
 const saveAuthUsers = (users) => {
-    localStorage.setItem("walletUsers", JSON.stringify(users));
+    saveStoredList(localStorage, "walletUsers", users);
 };
 
 const authenticateUser = (username, password) => {
@@ -169,24 +210,14 @@ const registerUser = ({ name, username, password }) => {
 };
 
 const getUser = () => {
-    const storedUser = sessionStorage.getItem("walletUser");
-
-    if (!storedUser) {
-        return null;
-    }
-
-    try {
-        return JSON.parse(storedUser);
-    } catch {
-        sessionStorage.removeItem("walletUser");
-        return null;
-    }
+    return readStoredObject(sessionStorage, "walletUser");
 };
 
 const setUser = (user) => {
-    sessionStorage.setItem("walletUser", JSON.stringify(user));
+    writeStoredJson(sessionStorage, "walletUser", user);
 };
 
+// Custom events and view changes
 const emit = (eventName, payload) => {
     $(document).trigger(eventName, payload === undefined ? [] : [payload]);
 };
@@ -198,7 +229,7 @@ const onEvent = (eventName, handler) => {
 const onView = (viewName, handler) => {
     onEvent("wallet:viewchange", function (_event, currentView) {
         if (currentView === viewName) {
-            handler(currentView);
+            handler();
         }
     });
 };
@@ -206,6 +237,8 @@ const onView = (viewName, handler) => {
 const triggerDataChange = () => {
     emit("wallet:datachange");
 };
+
+const protectedViews = new Set(["menu", "deposit", "sendmoney", "transactions"]);
 
 const updateNavState = (viewName) => {
     $(".wallet-navbar .nav-link").each(function () {
@@ -247,8 +280,9 @@ const logoutUser = () => {
     showView("login");
 };
 
+// Wallet state
 const setBalance = (balance) => {
-    sessionStorage.setItem("walletBalance", String(balance));
+    saveStoredValue(sessionStorage, "walletBalance", balance);
     triggerDataChange();
 };
 
@@ -271,29 +305,11 @@ const getBalance = () => {
 };
 
 const getTransactions = () => {
-    const storedTransactions = sessionStorage.getItem("walletTransactions");
-
-    if (!storedTransactions) {
-        sessionStorage.setItem("walletTransactions", JSON.stringify(defaultTransactions));
-        return [...defaultTransactions];
-    }
-
-    try {
-        const parsedTransactions = JSON.parse(storedTransactions);
-
-        if (!Array.isArray(parsedTransactions)) {
-            throw new Error("Invalid transactions");
-        }
-
-        return parsedTransactions;
-    } catch {
-        sessionStorage.setItem("walletTransactions", JSON.stringify(defaultTransactions));
-        return [...defaultTransactions];
-    }
+    return readStoredList(sessionStorage, "walletTransactions", defaultTransactions);
 };
 
 const saveTransactions = (transactions) => {
-    sessionStorage.setItem("walletTransactions", JSON.stringify(transactions));
+    saveStoredList(sessionStorage, "walletTransactions", transactions);
 };
 
 const addTransaction = (transaction) => {
@@ -304,8 +320,6 @@ const addTransaction = (transaction) => {
 };
 
 const getContacts = () => {
-    const storedContacts = sessionStorage.getItem("walletContacts");
-
     const normalizeContacts = (contacts) => {
         return contacts.map((contact) => ({
             ...contact,
@@ -313,29 +327,13 @@ const getContacts = () => {
         }));
     };
 
-    if (!storedContacts) {
-        sessionStorage.setItem("walletContacts", JSON.stringify(defaultContacts));
-        return [...defaultContacts];
-    }
-
-    try {
-        const parsedContacts = JSON.parse(storedContacts);
-
-        if (!Array.isArray(parsedContacts)) {
-            throw new Error("Invalid contacts");
-        }
-
-        const normalizedContacts = normalizeContacts(parsedContacts);
-        saveContacts(normalizedContacts);
-        return normalizedContacts;
-    } catch {
-        sessionStorage.setItem("walletContacts", JSON.stringify(defaultContacts));
-        return [...defaultContacts];
-    }
+    return readStoredList(sessionStorage, "walletContacts", defaultContacts, {
+        normalizeItems: normalizeContacts,
+    });
 };
 
 const saveContacts = (contacts) => {
-    sessionStorage.setItem("walletContacts", JSON.stringify(contacts));
+    saveStoredList(sessionStorage, "walletContacts", contacts);
 };
 
 const addContact = (contact) => {
@@ -345,6 +343,7 @@ const addContact = (contact) => {
     triggerDataChange();
 };
 
+// Shared API for the page scripts
 window.walletApp = {
     formatCurrency,
     formatBalance,
@@ -366,6 +365,7 @@ window.walletApp = {
     addContact,
 };
 
+// Global DOM bindings
 $(function () {
     $("[data-view]").on("click", function (event) {
         event.preventDefault();
